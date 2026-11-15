@@ -1,0 +1,685 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>hh · changing Flask benchmark · 2026-11-07</title>
+<meta name="description" content="hh growing-suite benchmark: 30 iterations on a Flask suite that grows from 494 to 517 tests, with a measured budget against six guessed timeouts.">
+<meta name="theme-color" content="#E5F9E4">
+<meta name="color-scheme" content="light">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hh · changing Flask benchmark · 2026-11-07">
+<meta property="og:description" content="hh growing-suite benchmark: 30 iterations on a Flask suite that grows from 494 to 517 tests, with a measured budget against six guessed timeouts.">
+<meta property="og:site_name" content="evenzero · hh benchmark series">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="hh · changing Flask benchmark · 2026-11-07">
+<meta name="twitter:description" content="hh growing-suite benchmark: 30 iterations on a Flask suite that grows from 494 to 517 tests, with a measured budget against six guessed timeouts."><style>
+/* ==========================================================================
+   hh / benchmark series — shared report design system
+   Self-contained (no external fonts or assets). Light "lab paper" surface,
+   mint paper, forest ink, stripe-screen halftone and monospace labels.
+   ========================================================================== */
+:root{
+  --paper:#E5F9E4; --surface:#E5F9E4; --surface-2:#C0F1BF;
+  --ink:#0C100C; --muted:#3B613A; --faint:#4A7649;
+  --line:#90B38F; --line-soft:#ABD7AA; --track:#C0F1BF;
+  --dark:#E5F9E4; --dark-2:#C0F1BF; --dark-line:#90B38F;
+  --dark-muted:#3B613A; --dark-ink:#0C100C;
+  --acid:#3B613A; --acid-ink:#0C100C; --acid-wash:#C0F1BF;
+  --pos:#3B613A; --pos-lite:#90B38F; --pos-deep:#3B613A;
+  --pos-wash:#C0F1BF; --pos-pale:#ABD7AA; --pos-line:#90B38F;
+  --neg:#0C100C; --neg-deep:#0C100C; --neg-wash:#E5F9E4;
+  --neutral:#90B38F; --neutral-pale:#ABD7AA; --baseline:#669666;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Liberation Mono","Courier New",monospace;
+  --gutter:clamp(20px,3vw,38px);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased;
+  background-color:var(--paper);
+  background-image:none;
+  background-size:auto;
+}
+a{color:var(--pos-deep);text-decoration:underline;text-decoration-color:var(--acid);text-underline-offset:3px}
+a:hover{color:var(--acid-ink)}
+img{max-width:100%}
+
+/* ---- the framed "sheet": a screenshot has clean, deliberate edges ---- */
+.sheet{
+  max-width:1280px;margin:28px auto 76px;background:var(--paper);
+  border:1px solid var(--line);
+  box-shadow:0 30px 60px -35px rgba(20,24,15,.38),0 2px 8px -4px rgba(20,24,15,.16);
+}
+
+/* ---- masthead / share toolbar ---- */
+.top{
+  position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;
+  min-height:62px;padding:8px var(--gutter);
+  background:var(--dark);border-bottom:1px solid var(--dark-line);color:var(--dark-ink);
+}
+.brand{font:700 14px/1 var(--sans);letter-spacing:-.01em;color:var(--dark-ink);white-space:nowrap}
+.brand em{
+  font-style:normal;display:inline-flex;align-items:center;justify-content:center;
+  background:var(--acid);color:#E5F9E4;border-radius:2px;
+  padding:4px 6px;margin-right:7px;font:700 11px/1 var(--mono);letter-spacing:.02em;
+}
+.pill{
+  font:600 9.5px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+  color:var(--dark-muted);border:1px solid var(--dark-line);border-radius:2px;
+  padding:6px 9px;background:var(--dark-2);white-space:nowrap;
+}
+.tools{display:flex;align-items:center;gap:6px}
+.btn{
+  appearance:none;-webkit-appearance:none;cursor:pointer;white-space:nowrap;
+  font:600 9.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;
+  color:var(--dark-ink);background:transparent;border:1px solid var(--dark-line);
+  border-radius:2px;padding:8px 10px;
+}
+.btn:hover{border-color:var(--acid);color:var(--acid)}
+.btn.primary{background:var(--acid);border-color:var(--acid);color:#E5F9E4}
+.btn.primary:hover{background:#3B613A;color:#E5F9E4}
+.e0{
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+  padding:4px 10px 4px 5px;border:1px solid var(--dark-line);border-radius:2px;
+  background:var(--dark-2);
+}
+.e0 img{width:24px;height:24px;border-radius:2px;display:block}
+.e0 span{font:700 11px/1 var(--mono);letter-spacing:.05em;color:var(--dark-ink)}
+.e0:hover{border-color:var(--acid)}
+
+/* ---- light screen-printed cover hero — the screenshot-ready summary ---- */
+.hero{
+  position:relative;isolation:isolate;overflow:hidden;
+  margin:0 calc(-1 * var(--gutter));padding:30px var(--gutter) 28px;
+  background:var(--dark);color:var(--dark-ink);border-bottom:1px solid var(--dark-line);
+}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background-image:repeating-linear-gradient(116deg,rgba(59,97,58,.14) 0 .7px,transparent .7px 4px);background-size:auto}
+.hero::after{content:"";position:absolute;z-index:-1;pointer-events:none;width:560px;height:470px;right:-122px;top:-178px;background-color:var(--neutral);background-image:repeating-linear-gradient(116deg,rgba(12,16,12,.64) 0 .8px,transparent .8px 4px);clip-path:ellipse(65% 57% at 67% 48%);opacity:.36;transform:rotate(-12deg)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(270px,.65fr);gap:28px;align-items:stretch}
+.hero-eyebrow{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  font:600 9.5px/1 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--acid);
+}
+.hero-eyebrow .sep{width:18px;height:1px;background:var(--dark-line)}
+.hero-eyebrow .dim{color:var(--dark-muted)}
+.hero-eyebrow .pulse{width:7px;height:7px;background:var(--acid);border-radius:50%;display:inline-block;margin-right:2px}
+.hero-title{
+  margin:18px 0 12px;font-size:clamp(32px,4.2vw,52px);line-height:1.04;
+  letter-spacing:-.045em;font-weight:700;color:#0C100C;max-width:19ch;
+}
+.hero-lede{margin:0;font-size:14.5px;line-height:1.65;color:#3B613A;max-width:64ch}
+.hero-meta{
+  display:flex;flex-wrap:wrap;align-items:center;gap:0;
+  margin-top:22px;padding-top:14px;border-top:1px solid var(--dark-line);
+}
+.hero-meta span{
+  font:500 9.5px/1.5 var(--mono);letter-spacing:.11em;text-transform:uppercase;
+  color:var(--dark-muted);padding-right:15px;margin-right:15px;border-right:1px solid var(--dark-line);
+}
+.hero-meta span:last-child{border-right:0;margin-right:0;padding-right:0}
+.hero-meta b{color:var(--dark-ink);font-weight:700}
+.hero-result{
+  display:flex;flex-direction:column;justify-content:flex-start;
+  border:1px solid var(--dark-line);background:rgba(229,249,228,.025);
+  padding:16px 18px 15px;
+}
+.hr-top{
+  display:flex;justify-content:space-between;gap:8px;align-items:center;
+  font:600 9px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--acid);
+}
+.hr-top .dot{width:6px;height:6px;border-radius:50%;background:var(--acid);display:inline-block;margin-right:6px}
+.hero-num{
+  font:700 clamp(44px,5.4vw,70px)/1 var(--mono);letter-spacing:-.07em;
+  color:var(--acid);font-variant-numeric:tabular-nums;margin:20px 0 8px;
+}
+.hero-num span{font-size:.3em;letter-spacing:0;color:var(--dark-ink);font-weight:600;margin-left:8px}
+.hero-cap{font-size:12.5px;line-height:1.55;color:#3B613A;margin:0}
+.hero-tags{
+  margin-top:auto;padding-top:16px;border-top:1px solid var(--dark-line);
+  font:600 8.5px/1.6 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--dark-muted);
+}
+
+/* ---- content canvas ---- */
+.wrap{padding:0 var(--gutter) 34px;counter-reset:sec}
+.wrap > * + *{margin-top:16px}
+.hero + .band{margin-top:0}
+
+/* ---- KPI strip ---- */
+.band{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));counter-reset:stat;
+  background:var(--surface);border:1px solid var(--line);border-top:0;
+}
+.stat{
+  counter-increment:stat;position:relative;display:flex;flex-direction:column;
+  padding:16px 20px 18px;border-right:1px solid var(--line);background:transparent;
+}
+.stat:last-child{border-right:0}
+.stat::before{
+  content:"0" counter(stat);position:absolute;top:17px;right:18px;
+  font:600 9px/1 var(--mono);letter-spacing:.12em;color:var(--faint);
+}
+.stat-ic{
+  order:0;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--line);border-radius:2px;background:var(--surface-2);
+  color:var(--acid-ink);font:600 13px/1 var(--mono);
+}
+.stat-ic svg{width:16px;height:16px;display:block}
+.stat-ic.glyph{font-size:0}
+.stat-ic.glyph::before{
+  content:"";width:7px;height:7px;background:var(--acid);
+  border:1px solid var(--acid-ink);border-radius:1px;
+}
+.stat-v{
+  order:1;margin-top:10px;font:700 38px/1 var(--mono);letter-spacing:-.06em;
+  color:var(--ink);font-variant-numeric:tabular-nums;
+}
+.stat-v small{font-size:.42em;color:var(--faint);font-weight:600;letter-spacing:0;margin-left:4px}
+.stat-k{
+  order:2;margin:9px 0 0;font:700 9.5px/1.3 var(--mono);
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+}
+.stat-n{order:3;margin-top:6px;font-size:11.5px;line-height:1.45;color:var(--faint)}
+
+/* ---- panels ---- */
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;grid-auto-rows:1fr}
+.card{
+  counter-increment:sec;position:relative;
+  background:var(--surface);border:1px solid var(--line);border-radius:3px;
+  padding:20px 22px 22px;
+}
+.grid2 > .card{display:flex;flex-direction:column;height:100%;min-height:250px}
+.card::after{
+  content:attr(data-stamp);position:absolute;top:16px;right:18px;
+  font:600 9px/1 var(--mono);letter-spacing:.14em;color:var(--faint);
+}
+.sect{
+  display:block;padding:0 105px 12px 0;margin:0 0 16px;
+  border-bottom:1px solid var(--line-soft);
+  font:700 10.5px/1.35 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--ink);
+}
+.sect::before{
+  content:counter(sec,decimal-leading-zero);display:inline-flex;align-items:center;justify-content:center;
+  min-width:23px;height:19px;padding:0 5px;margin-right:10px;vertical-align:1px;
+  background:var(--acid);color:#E5F9E4;border-radius:2px;
+  font:700 10px/1 var(--mono);letter-spacing:.03em;
+}
+.card p{font-size:13.5px;color:var(--muted);margin:0 0 12px}
+.card p:last-child{margin-bottom:0}
+.lead,.card p.lead{font-size:15px;line-height:1.65;color:var(--ink)}
+.hero-sub,.small,.subnum{font-size:12.5px;line-height:1.65;color:var(--muted)}
+b,strong{color:var(--ink);font-weight:700}
+code{
+  font:500 11.5px/1.4 var(--mono);background:var(--surface-2);
+  border:1px solid var(--line-soft);border-radius:2px;padding:1px 5px;color:var(--ink);
+  white-space:nowrap;
+}
+pre{
+  position:relative;margin:14px 0 0;padding:34px 18px 16px;overflow:auto;
+  background:var(--dark);border:1px solid var(--dark-line);border-left:3px solid var(--acid);
+  border-radius:2px;color:#0C100C;font:12px/1.75 var(--mono);
+}
+pre::before{
+  content:"REPRODUCE / SHELL";position:absolute;top:11px;left:18px;
+  font:600 9px/1 var(--mono);letter-spacing:.16em;color:var(--acid);
+}
+
+/* ---- headline numbers & comparisons ---- */
+.bignum{
+  font:700 62px/1 var(--mono);letter-spacing:-.07em;color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+.bignum small{font-size:.3em;color:var(--muted);font-weight:600;letter-spacing:0;margin-left:6px}
+.cap{font-size:13px;color:var(--muted);margin-top:4px}
+.cap b{color:var(--ink)}
+.cmp{margin:20px 0 4px}
+.cmp-r{display:flex;align-items:center;gap:10px;margin:9px 0}
+.cmp-k{width:48px;font:700 9.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.cmp-t{flex:1;height:10px;background:var(--track);border-radius:1px;overflow:hidden}
+.cmp-t div{height:100%;border-radius:1px}
+.cmp-v{width:68px;text-align:right;font:600 11.5px/1 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.footline{
+  margin-top:auto;padding-top:14px;border-top:1px solid var(--line-soft);
+  font-size:11.5px;line-height:1.5;color:var(--faint);
+}
+.footline b{color:var(--muted)}
+.win{color:var(--pos-deep);font-weight:700;font-variant-numeric:tabular-nums}
+.lose{color:var(--neg-deep);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* ---- mini KPI rows ---- */
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin:4px 0 18px}
+.kpi{padding:2px 16px;border-left:1px solid var(--line)}
+.kpi:first-child{border-left:0;padding-left:0}
+.kpi .v{font:700 24px/1.15 var(--mono);letter-spacing:-.05em;color:var(--ink);font-variant-numeric:tabular-nums}
+.kpi .k{margin-top:6px;font:700 9px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.kpi .n{margin-top:4px;font-size:11px;color:var(--faint)}
+
+/* ---- bars ---- */
+.kbar{height:10px;border-radius:1px;background:var(--track);overflow:hidden;margin:16px 0 8px;display:flex}
+.kbar i{height:100%;display:block;border-right:2px solid var(--surface)}
+.kbar i:last-child{border-right:0}
+.kbar-l{display:flex;justify-content:space-between;gap:10px;font:500 11px/1.4 var(--mono);color:var(--muted)}
+.kbar-l b{color:var(--ink)}
+.hbar{display:flex;align-items:center;gap:10px;margin:8px 0}
+.hbar-lab{width:150px;font-size:12px;font-weight:600;flex-shrink:0}
+.hbar-track{height:10px;border-radius:1px;background:var(--track);overflow:hidden}
+.hbar-fill{height:100%;border-radius:1px}
+.hbar-val{font:600 11px/1 var(--mono);color:var(--muted);min-width:52px;text-align:right}
+.pb-scroll{overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.pb-row{display:flex;align-items:center;gap:10px;margin:8px 0}
+.pb-lab{width:188px;flex-shrink:0}
+.pb-lab b{font-size:12.5px;display:block}
+.pb-lab span{font-size:11px;color:var(--faint)}
+.pb-track{flex:1 1 0;min-width:90px;height:10px;border-radius:1px;background:var(--track);overflow:hidden}
+.pb-fill{height:100%;border-radius:1px}
+.pb-val{width:96px;text-align:right;font:500 11px/1 var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.pb-head{display:flex;gap:10px;margin:2px 0 10px}
+.pb-head .sp{font:700 9px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.pb-row.loss .pb-lab b{color:var(--muted)}
+.pb-row.loss .pb-fill.hh{background:var(--neutral) !important}
+
+/* ---- run chart ---- */
+.runs{
+  height:132px;display:flex;gap:3px;align-items:stretch;padding:0 2px;
+  border-bottom:1px solid var(--line);
+  background:repeating-linear-gradient(to top,transparent,transparent 26px,var(--line-soft) 26px,var(--line-soft) 27px);
+}
+.run-col{flex:1;min-width:4px;position:relative;display:flex;align-items:flex-end;padding-bottom:18px}
+.run-bar{width:100%;border-radius:1px 1px 0 0}
+.run-col span{position:absolute;bottom:3px;font:600 9px/1 var(--mono);color:var(--faint)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:1px;margin-right:5px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:14px 0 0;font-size:11.5px;color:var(--muted)}
+.legend i{width:10px;height:10px;border-radius:1px;display:inline-block;margin-right:6px;vertical-align:-1px}
+.legend span{font:500 10.5px/1.4 var(--mono);color:var(--muted)}
+
+/* ---- chips / tags / badges ---- */
+.chips{display:flex;gap:8px 20px;flex-wrap:wrap;margin-top:16px}
+.chip{
+  border:1px solid var(--line);border-radius:2px;padding:5px 9px;
+  font:500 11px/1.3 var(--mono);color:var(--muted);background:var(--surface-2);
+}
+.chip.legend-key{
+  display:inline-flex;align-items:center;gap:8px;padding:0;border:0;background:transparent;
+  font:400 11.5px/1.4 var(--sans);color:var(--muted);
+}
+.chip.legend-key .tag{flex-shrink:0}
+.tag{
+  display:inline-block;border:1px solid transparent;border-radius:2px;padding:3px 7px;
+  font:700 9.5px/1.25 var(--mono);letter-spacing:.05em;text-transform:uppercase;
+  background:var(--neg-wash);color:var(--neg-deep);border-color:#90B38F;white-space:nowrap;
+}
+.tag.g{background:var(--pos-wash);color:var(--pos-deep);border-color:var(--pos-line)}
+.tag.s{background:var(--surface-2);color:var(--muted);border-color:var(--line)}
+.rb{
+  display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:2px;
+  padding:3px 8px;background:var(--surface-2);color:var(--ink);
+  font:600 10.5px/1.25 var(--mono);letter-spacing:.01em;white-space:nowrap;
+}
+.rb::before{content:"";width:6px;height:6px;border-radius:1px;background:var(--swatch,var(--neutral));flex-shrink:0}
+.nw{white-space:nowrap;font:500 11px/1.4 var(--mono);color:var(--muted)}
+
+/* ---- heatmap grid ---- */
+.grid-wrap,.table-wrap{overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.grid-wrap::-webkit-scrollbar,.table-wrap::-webkit-scrollbar{height:8px}
+.grid-wrap::-webkit-scrollbar-thumb,.table-wrap::-webkit-scrollbar-thumb{background:var(--line);border-radius:1px}
+.grow{
+  display:grid;grid-template-columns:120px repeat(6,minmax(70px,1fr)) minmax(94px,1fr);
+  gap:4px;margin:6px 0;align-items:center;
+}
+.gl{font:600 12px/1.3 var(--mono)}
+.gh{
+  font:700 9px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);text-align:center;padding-bottom:6px;border-bottom:1px solid var(--line);
+}
+.gh-hh{color:var(--pos-deep)}
+.gc{
+  text-align:center;font:600 11px/1.3 var(--mono);font-variant-numeric:tabular-nums;
+  border-radius:2px;padding:8px 3px;border:1px solid transparent;
+}
+.gc-ok{background:var(--pos-wash);color:var(--pos-deep);border-color:var(--pos-line)}
+.gc-kill{background:var(--neg-wash);color:var(--neg-deep);border-color:#90B38F}
+.gc-up{background:var(--dark);color:#0C100C;border-color:var(--dark-line)}
+.gc-hh,.gc-win{background:var(--ink);color:var(--acid);border-color:var(--ink);font-weight:700}
+.gc-neutral{background:var(--surface-2);color:var(--muted);border-color:var(--line)}
+
+/* ---- tables ---- */
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{
+  font:700 9px/1.35 var(--mono);letter-spacing:.11em;text-transform:uppercase;
+  color:var(--muted);text-align:left;padding:9px 10px;
+  background:var(--surface-2);border-bottom:1px solid var(--line);white-space:nowrap;
+}
+td{padding:8px 10px;border-bottom:1px solid var(--line-soft);vertical-align:top;color:var(--ink)}
+tbody tr:hover td{background:var(--surface-2)}
+td.num,th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+td.num{font-family:var(--mono);font-size:11.5px}
+tr:last-child td{border-bottom:0}
+.prov td,.prov th{font-size:11.5px}
+
+/* ---- notes & charts ---- */
+.note-list{list-style:none;padding:0;margin:0}
+.note-list li{position:relative;padding-left:18px;margin:10px 0;font-size:13px;color:var(--muted)}
+.note-list li::before{
+  content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;
+  background:var(--acid);border:1px solid var(--acid-ink);border-radius:1px;
+}
+.card svg{display:block;max-width:100%}
+.sc-tick{font:500 9.5px/1 var(--mono);fill:var(--faint)}
+.sc-lab{font-size:11.5px;fill:var(--muted);font-weight:600}
+.sc-repo{font:500 10px/1 var(--mono);fill:var(--faint)}
+.sc-mean{font:700 10px/1 var(--mono)}
+.zone-lab{font:700 9px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase}
+
+/* ---- footer ---- */
+.foot{
+  margin-top:26px;padding-top:14px;border-top:1px solid var(--line);
+  font:500 10px/1.6 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--faint);
+}
+.share-strip{
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  padding:18px var(--gutter);background:var(--dark);border-top:1px solid var(--dark-line);
+  color:var(--dark-muted);
+}
+.share-strip .ss-mark{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--acid);color:#E5F9E4;border-radius:2px;
+  padding:6px 8px;font:700 12px/1 var(--mono);
+}
+.share-strip .ss-id{display:flex;flex-direction:column;gap:3px}
+.share-strip .ss-id b{font:700 10px/1 var(--mono);letter-spacing:.16em;color:var(--dark-ink)}
+.share-strip .ss-id span,.share-strip .ss-right{font:500 9px/1.5 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--dark-muted)}
+.share-strip .ss-right{margin-left:auto}
+.share-strip a{color:var(--acid);text-decoration:none;letter-spacing:.12em;font:600 9px/1 var(--mono)}
+.share-strip a:hover{text-decoration:underline}
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,10px);z-index:60;
+  padding:10px 16px;background:var(--dark);color:var(--acid);
+  border:1px solid var(--acid);border-radius:2px;
+  font:600 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;
+  opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---- responsive ---- */
+@media (max-width:1000px){
+  .hero-grid{grid-template-columns:1fr}
+  .hero-result{min-height:auto}
+  .hero-tags{margin-top:16px}
+  .band{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stat:nth-child(2){border-right:0}
+  .stat:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .grid2{grid-template-columns:1fr;grid-auto-rows:auto}
+  .grid2 > .card{min-height:0}
+  .top{flex-wrap:wrap;row-gap:8px}
+  .tools{order:3;width:100%;flex-wrap:wrap}
+}
+@media (max-width:900px){
+  .pb-scroll > .pb-head,.pb-scroll > .pb-row{min-width:660px}
+}
+@media (max-width:620px){
+  :root{--gutter:18px}
+  .sheet{margin:0 auto 32px;border-left:0;border-right:0}
+  .brand{font-size:12px}
+  .pill{font-size:8.5px;padding:5px 7px}
+  .hero-title{font-size:32px}
+  .band{grid-template-columns:1fr}
+  .stat{border-right:0;border-bottom:1px solid var(--line)}
+  .stat:last-child{border-bottom:0}
+  .kpis{grid-template-columns:1fr;gap:12px}
+  .kpi{border-left:0;border-top:1px solid var(--line);padding:10px 0 0}
+  .kpi:first-child{border-top:0;padding-top:0}
+  .sect{padding-right:0}
+  .card::after{display:none}
+  .share-strip .ss-right{margin-left:0}
+  .bignum{font-size:46px}
+  .grow{grid-template-columns:96px repeat(6,minmax(62px,1fr)) minmax(84px,1fr)}
+}
+
+/* ---- share / print: one clean page artifact ---- */
+@media print{
+  @page{margin:12mm}
+  body{background:#E5F9E4;font-size:11px}
+  .sheet{max-width:none;margin:0;border:0;box-shadow:none}
+  .top{position:static;min-height:0;padding:8px 0}
+  .tools,.toast{display:none !important}
+  .hero{margin:0;padding:18px 0 16px}
+  .wrap{padding:0 0 12px}
+  .wrap > * + *{margin-top:10px}
+  .card,.stat,.grid2,.band,.hero,.share-strip{break-inside:avoid}
+  .card{padding:12px 14px}
+  .grid-wrap,.table-wrap{overflow:visible}
+  table{font-size:8.5px}
+  th,td{padding:3px 5px}
+  td.num{font-size:8.5px}
+  .hero-title{font-size:30px}
+  .hero-num{font-size:44px}
+  .bignum{font-size:40px}
+  .foot{margin-top:12px}
+  .share-strip{padding:10px 0}
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+}
+
+
+
+
+
+
+
+/* ---- supplied ink / forest / sage / mint palette; stripe-screen halftone ---- */
+html{color-scheme:light}
+body{
+  background-color:var(--neutral);
+  background-image:repeating-linear-gradient(116deg,rgba(229,249,228,.72) 0 .8px,transparent .8px 4px);
+  background-size:auto;
+}
+.sheet{
+  background:var(--paper);border-color:var(--line);
+  box-shadow:0 26px 58px -42px rgba(12,16,12,.3),0 2px 8px -4px rgba(12,16,12,.12);
+}
+.top{
+  background-color:var(--paper);background-image:repeating-linear-gradient(116deg,rgba(59,97,58,.055) 0 .7px,transparent .7px 5px);
+  border-bottom:1px solid var(--line);color:var(--ink);
+}
+.brand{color:var(--ink)}
+.brand em{
+  background-color:var(--acid);background-image:repeating-linear-gradient(116deg,rgba(229,249,228,.42) 0 .7px,transparent .7px 3.5px);
+  color:var(--paper);
+}
+.pill{color:var(--muted);border-color:var(--line);background:var(--surface-2)}
+.btn{color:var(--ink);background:var(--surface);border-color:var(--line)}
+.btn:hover{border-color:var(--acid);color:var(--acid);background:var(--surface-2)}
+.btn.primary{
+  background-color:var(--acid);background-image:repeating-linear-gradient(116deg,rgba(229,249,228,.2) 0 .75px,transparent .75px 4px);
+  border-color:var(--acid);color:var(--paper);
+}
+.btn.primary:hover{background-color:var(--pos);border-color:var(--pos);color:var(--paper)}
+.e0{border-color:var(--line);background:var(--surface)}
+.e0 span{color:var(--ink)}
+.e0:hover{border-color:var(--acid)}
+.hero{background-color:var(--paper);color:var(--ink);border-bottom:1px solid var(--line)}
+.hero::before{
+  background-image:repeating-linear-gradient(116deg,rgba(59,97,58,.14) 0 .7px,transparent .7px 4px);
+  background-size:auto;opacity:.56;-webkit-mask-image:none;mask-image:none;
+}
+.hero::after{
+  width:560px;height:470px;right:-122px;top:-178px;
+  background-color:var(--neutral);
+  background-image:repeating-linear-gradient(116deg,rgba(12,16,12,.64) 0 .8px,transparent .8px 4px);
+  clip-path:ellipse(65% 57% at 67% 48%);opacity:.36;transform:rotate(-12deg);
+}
+.hero-eyebrow{color:var(--acid)}
+.hero-eyebrow .sep{background:var(--line)}
+.hero-eyebrow .dim{color:var(--muted)}
+.hero-eyebrow .pulse{background:var(--pos)}
+.hero-title{color:var(--ink)}
+.hero-lede,.hero-cap{color:var(--muted)}
+.hero-meta{border-top-color:var(--line)}
+.hero-meta span{color:var(--muted);border-right-color:var(--line)}
+.hero-meta b{color:var(--ink)}
+.hero-result{
+  border-color:var(--line);background-color:var(--surface-2);
+  background-image:repeating-linear-gradient(116deg,rgba(12,16,12,.12) 0 .8px,transparent .8px 4.5px);
+  color:var(--ink);
+}
+.hr-top{color:var(--acid)}
+.hr-top .dot{background:var(--acid)}
+.hero-num{color:var(--ink)}
+.hero-num span{color:var(--muted)}
+.hero-tags{border-top-color:var(--line);color:var(--muted)}
+.band{
+  background-color:var(--surface);
+  background-image:repeating-linear-gradient(116deg,rgba(59,97,58,.08) 0 .65px,transparent .65px 5px);
+}
+.card{background-color:var(--surface);border-color:var(--line)}
+.sect::before{
+  background-color:var(--acid);background-image:repeating-linear-gradient(116deg,rgba(229,249,228,.6) 0 .7px,transparent .7px 3.5px);
+  color:var(--paper);
+}
+.card::after{
+  padding:4px 6px;border:1px solid var(--line-soft);background-color:var(--surface);
+  background-image:repeating-linear-gradient(116deg,rgba(59,97,58,.22) 0 .7px,transparent .7px 3.5px);
+  background-size:auto;
+}
+code{background-color:var(--surface-2);border-color:var(--line-soft);color:var(--ink)}
+pre{
+  color:var(--ink);background-color:var(--surface-2);border-color:var(--line);border-left-color:var(--acid);
+  background-image:repeating-linear-gradient(116deg,rgba(12,16,12,.08) 0 .7px,transparent .7px 5px);
+}
+pre::before{
+  color:var(--paper);background-color:var(--acid);padding:4px 6px;
+  background-image:repeating-linear-gradient(116deg,rgba(229,249,228,.35) 0 .7px,transparent .7px 3.5px);
+}
+.chip,.tag,.rb{background-image:repeating-linear-gradient(116deg,rgba(59,97,58,.08) 0 .6px,transparent .6px 4px)}
+.cmp-t div,.kbar i,.hbar-fill,.pb-fill,.run-bar{background-image:none !important}
+.runs{
+  background-image:repeating-linear-gradient(to top,transparent,transparent 26px,var(--line-soft) 26px,var(--line-soft) 27px),
+                   repeating-linear-gradient(116deg,rgba(59,97,58,.13) 0 .65px,transparent .65px 4px);
+}
+.gc{background-image:repeating-linear-gradient(116deg,rgba(12,16,12,.11) 0 .7px,transparent .7px 4px)}
+.gc-ok{background-color:var(--pos-wash);color:var(--pos-deep);border-color:var(--pos-line)}
+.gc-kill{background-color:var(--neg-wash);color:var(--neg-deep);border-color:var(--line)}
+.gc-up{background-color:var(--surface);color:var(--ink);border-color:var(--muted)}
+.gc-hh,.gc-win{background-color:var(--pos-pale);color:var(--pos-deep);border-color:var(--pos-line)}
+th{
+  background-color:var(--surface-2);
+  background-image:repeating-linear-gradient(116deg,rgba(59,97,58,.11) 0 .65px,transparent .65px 4px);
+}
+tbody tr:hover td{background:var(--pos-wash)}
+.share-strip{
+  background-color:var(--surface-2);background-image:repeating-linear-gradient(116deg,rgba(12,16,12,.11) 0 .75px,transparent .75px 4px);
+  border-top-color:var(--line);color:var(--muted);
+}
+.share-strip .ss-mark{
+  background-color:var(--acid);background-image:repeating-linear-gradient(116deg,rgba(229,249,228,.45) 0 .7px,transparent .7px 3.5px);
+  color:var(--paper);
+}
+.share-strip .ss-id b{color:var(--ink)}
+.share-strip .ss-id span,.share-strip .ss-right{color:var(--muted)}
+.share-strip a{color:var(--acid)}
+.toast{background:var(--surface);color:var(--ink);border-color:var(--acid);box-shadow:0 8px 24px rgba(12,16,12,.12)}
+@media(max-width:620px){
+  .hero::before{opacity:.24}
+  .hero::after{display:none}
+}
+@media print{
+  body{background-color:var(--paper) !important;background-image:none !important}
+  .top,.hero,.hero-result,.share-strip{color:var(--ink)}
+  .hero{background-color:var(--paper)}
+  .hero-title{color:var(--ink)}
+  .hero-lede,.hero-cap{color:var(--muted)}
+  .hero-num{color:var(--ink)}
+  .hero-result,.share-strip{background-color:var(--surface-2)}
+  .card,pre{background-color:var(--surface)}
+  .top,.hero,.hero-result,.share-strip,.sect::before,.gc{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head><body data-report="HH / 03" data-summary="hh changing Flask benchmark (2026-11-07): +226.1 s saved over 60 recovered naive timeouts; 0 hh timeouts across 30 iterations while the suite grew 494 → 517 tests. evenzero.in">
+<div class="sheet">
+<div class="top" id="top"><div class="brand"><em>hh</em> · timeout-metric</div><div class="pill">growing suite</div><div class="pill">2026-11-07</div><div style="flex:1"></div>
+  <div class="tools">
+    <button class="btn primary" type="button" data-copy="summary" title="Copy a plain-text summary for Slack, X, or a PR">copy summary</button>
+    <button class="btn" type="button" data-copy="link" title="Copy the link to this report">copy link</button>
+    <button class="btn" type="button" data-print title="Print or save as PDF">print / pdf</button>
+  </div><a class="e0" href="https://evenzero.in" target="_blank" rel="noopener">
+    <img alt="evenzero" src="data:image/png;base64,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"><span>evenzero</span>
+  </a></div><div class="wrap">
+<header class="hero">
+  <div class="hero-grid">
+    <div class="hero-main">
+      <div class="hero-eyebrow"><span><i class="pulse"></i>evenzero · hh benchmark series</span>
+        <span class="sep"></span><span class="dim">REPORT 03 / 03</span></div>
+      <h1 class="hero-title">A suite that grows between calls.</h1>
+      <p class="hero-lede">The same pinned Flask checkout, 30 iterations, six additions taking the suite from 494 to 517 tests — while hh keeps its measurement history and the naive arm keeps guessing.</p>
+      <div class="hero-meta"><span><b>30</b> iterations</span><span><b>23</b> tests added</span><span><b>180</b> naive configs</span><span><b>6</b> timeout guesses</span></div>
+    </div>
+    <div class="hero-result">
+      <div class="hr-top"><span><i class="dot"></i>headline result</span><span>HH / 03</span></div>
+      <div class="hero-num">+226.1<span>s</span></div>
+      <p class="hero-cap">net saved across 60 recovered killed configurations, against the same iteration’s hh wall.</p>
+      <div class="hero-tags">0 hh timeouts · 60 / 180 naive kills</div>
+    </div>
+  </div>
+</header>
+<div class="band"><div class="stat"><div class="stat-ic glyph" aria-hidden="true">◉</div><div class="stat-k">repository</div><div class="stat-v">1</div><div class="stat-n">Flask · pytest · pinned checkout</div></div><div class="stat"><div class="stat-ic glyph" aria-hidden="true">◷</div><div class="stat-k">iterations</div><div class="stat-v">30</div><div class="stat-n">one actual hh call per iteration</div></div><div class="stat"><div class="stat-ic glyph" aria-hidden="true">＋</div><div class="stat-k">tests added</div><div class="stat-v">23</div><div class="stat-n">6 additions; 494 → 517 tests</div></div><div class="stat"><div class="stat-ic glyph" aria-hidden="true">▦</div><div class="stat-k">naive configurations</div><div class="stat-v">180</div><div class="stat-n">30 iterations × 6 actual timeout guesses</div></div></div>
+<div class="grid2"><div class="card" data-stamp="HH · 03"><div class="sect">Time saved vs the naive caller</div><div class="bignum" style="color:var(--pos-deep)">+226.1<small> s</small></div><div class="cap">net across <b>60</b> recovered killed configurations</div><div class="cmp"><div class="cmp-r"><span class="cmp-k">naive</span><div class="cmp-t"><div style="width:100.0%;background:var(--neg)"></div></div><span class="cmp-v">482.2 s</span></div><div class="cmp-r"><span class="cmp-k">hh</span><div class="cmp-t"><div style="width:53.1%;background:var(--pos)"></div></div><span class="cmp-v">256.2 s</span></div></div><div class="footline">Counterfactual sum: each iteration's one hh wall is reused for its killed guesses. Not a separately executed hh call per guess.</div></div>
+<div class="card" data-stamp="HH · 03"><div class="sect">Kills observed</div><div class="bignum">0<small> hh timeouts</small></div><div class="cap"><b>60 / 180</b> naive configurations timed out (111 total kills)</div><div class="chips"><span class="chip">hh complete: 30 / 30</span><span class="chip">recovered: 60</span><span class="chip">naive no result: 0</span></div><div class="footline">hh calls, not configurations; each naive guess ran separately.</div></div></div>
+<div class="card" data-stamp="HH · 03"><div class="sect">The experiment</div><p class="lead">The same Flask checkout as the static benchmark, but the test suite grows while hh keeps its measurement history.</p><p>Starting from 494 passing Flask tests, six events add a total of 23 synthetic pytest tests. Their sleep durations are seeded random integers from 100–250 ms, adding 3.845 s of scheduled sleep by the end. They are deliberately artificial workload, not new Flask behavior or realistic production tests.</p><p>Each of 30 iterations runs hh once and runs the real pytest command separately at each guess G = 1, 2, 5, 10, 20 and 30 s. A naive timeout kills and restarts from zero at double the guess, up to four attempts. Arms see the same growing tree; naive order is seeded and shuffled, while hh alternates between first and last. The store is reset before iteration 1 and retained thereafter. Each comparison uses the actual hh process wall from that same iteration, including planning and discovery, not a static median.</p></div>
+<div class="card" data-stamp="HH · 03"><div class="sect">Does hh support a changing suite?</div><ul class="note-list"><li><b>Discovery:</b> pytest manifests are cached using a filesystem fingerprint; new or deleted <code>.py</code> files change it, prompting rediscovery. This experiment adds new files; a separate ledger check verifies every generated test ID passed on every subsequent iteration.</li>
+<li><b>Estimation:</b> previously seen IDs use their measurements; unseen IDs fall back to file or suite averages until they have their own observations. A new, unexpectedly slow test can therefore be underestimated on its first run. <code>coverage</code> is estimated duration mass, not the fraction of test IDs; <code>confidence</code> is calculated after execution, and read 1.0 at the additions despite unmeasured tests in the plan.</li>
+<li><b>Important cache limitation:</b> the fingerprint uses path, file size and integer-second mtime, not file content. A same-size edit in the same second (or one preserving the mtime) may reuse a stale manifest. A separate controlled one-test check renaming <code>test_one</code> to <code>test_two</code> while preserving size and mtime returned <code>shard_failed</code>, rather than running the new test. Invalidation also does not include pytest configuration files or <code>HH_PYTEST_ARGS</code>. Remove that store's <code>.hh/manifest-pytest.json</code> to force rediscovery after such changes; do not assume every edit is detected.</li>
+<li><b>Scope:</b> this benchmark tests additions, not arbitrary edits, deletions, config changes or test identity collisions. It is evidence for this scenario, not proof that all suite changes are supported.</li></ul></div>
+<div class="card" data-stamp="HH · 03"><div class="sect">Suite growth</div><div class="kpis"><div class="kpi"><div class="v">494 → 517</div><div class="k">test count</div><div class="n">original suite plus synthetic tests</div></div><div class="kpi"><div class="v">30 / 30</div><div class="k">hh ledgers complete</div><div class="n">all expected IDs passed</div></div><div class="kpi"><div class="v">4.213 s</div><div class="k">hh process median</div><div class="n">includes cold and growing calls</div></div></div><div class="runs"><div class="run-col" title="Iteration 1: 494 tests; hh 2.496 s"><div class="run-bar" style="height:95.6%;background:var(--pos)"></div><span>1</span></div><div class="run-col" title="Iteration 2: 494 tests; hh 2.451 s"><div class="run-bar" style="height:95.6%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 3: 494 tests; hh 2.003 s"><div class="run-bar" style="height:95.6%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 4: 499 tests; hh 3.170 s"><div class="run-bar" style="height:96.5%;background:var(--neg)"></div><span></span></div><div class="run-col" title="Iteration 5: 499 tests; hh 2.731 s"><div class="run-bar" style="height:96.5%;background:var(--pos)"></div><span>5</span></div><div class="run-col" title="Iteration 6: 499 tests; hh 2.917 s"><div class="run-bar" style="height:96.5%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 7: 499 tests; hh 3.046 s"><div class="run-bar" style="height:96.5%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 8: 499 tests; hh 2.833 s"><div class="run-bar" style="height:96.5%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 9: 502 tests; hh 3.831 s"><div class="run-bar" style="height:97.1%;background:var(--neg)"></div><span></span></div><div class="run-col" title="Iteration 10: 502 tests; hh 3.460 s"><div class="run-bar" style="height:97.1%;background:var(--pos)"></div><span>10</span></div><div class="run-col" title="Iteration 11: 502 tests; hh 3.404 s"><div class="run-bar" style="height:97.1%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 12: 502 tests; hh 3.310 s"><div class="run-bar" style="height:97.1%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 13: 502 tests; hh 3.346 s"><div class="run-bar" style="height:97.1%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 14: 506 tests; hh 4.579 s"><div class="run-bar" style="height:97.9%;background:var(--neg)"></div><span></span></div><div class="run-col" title="Iteration 15: 506 tests; hh 4.043 s"><div class="run-bar" style="height:97.9%;background:var(--pos)"></div><span>15</span></div><div class="run-col" title="Iteration 16: 506 tests; hh 4.416 s"><div class="run-bar" style="height:97.9%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 17: 506 tests; hh 4.387 s"><div class="run-bar" style="height:97.9%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 18: 506 tests; hh 4.076 s"><div class="run-bar" style="height:97.9%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 19: 509 tests; hh 5.116 s"><div class="run-bar" style="height:98.5%;background:var(--neg)"></div><span></span></div><div class="run-col" title="Iteration 20: 509 tests; hh 4.519 s"><div class="run-bar" style="height:98.5%;background:var(--pos)"></div><span>20</span></div><div class="run-col" title="Iteration 21: 509 tests; hh 4.351 s"><div class="run-bar" style="height:98.5%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 22: 509 tests; hh 4.591 s"><div class="run-bar" style="height:98.5%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 23: 509 tests; hh 4.571 s"><div class="run-bar" style="height:98.5%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 24: 512 tests; hh 5.497 s"><div class="run-bar" style="height:99.0%;background:var(--neg)"></div><span></span></div><div class="run-col" title="Iteration 25: 512 tests; hh 5.249 s"><div class="run-bar" style="height:99.0%;background:var(--pos)"></div><span>25</span></div><div class="run-col" title="Iteration 26: 512 tests; hh 5.083 s"><div class="run-bar" style="height:99.0%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 27: 512 tests; hh 5.066 s"><div class="run-bar" style="height:99.0%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 28: 512 tests; hh 5.157 s"><div class="run-bar" style="height:99.0%;background:var(--pos)"></div><span></span></div><div class="run-col" title="Iteration 29: 517 tests; hh 6.563 s"><div class="run-bar" style="height:100.0%;background:var(--neg)"></div><span></span></div><div class="run-col" title="Iteration 30: 517 tests; hh 6.172 s"><div class="run-bar" style="height:100.0%;background:var(--pos)"></div><span>30</span></div></div><p class="small"><span class="dot" style="background:var(--neg)"></span>addition event &nbsp; <span class="dot" style="background:var(--pos)"></span>unchanged iteration · bars show total test count (0–517)</p></div>
+<div class="card" data-stamp="HH · 03"><div class="sect">Additions and first hh measurement</div><p class="small">Each addition is a new file. Delays are seeded and fixed thereafter; <code>measured tests</code>, p90 and coverage are from the plan before that call executes the newly added tests.</p><div class="table-wrap"><table><thead><tr><th>iteration</th><th class="num">added</th><th>delays (ms)</th><th class="num">expected</th><th class="num">measured tests</th><th class="num">coverage</th><th class="num">p90 (s)</th><th class="num">budget (s)</th><th class="num">ledger passed</th></tr></thead><tbody><tr><td>4</td><td class="num">+5</td><td>197, 213, 108, 138, 179</td><td class="num">499</td><td class="num">494</td><td class="num">0.990</td><td class="num">1.120</td><td class="num">3.000</td><td class="num">499</td></tr><tr><td>9</td><td class="num">+3</td><td>155, 118, 242</td><td class="num">502</td><td class="num">499</td><td class="num">0.995</td><td class="num">2.164</td><td class="num">3.000</td><td class="num">502</td></tr><tr><td>14</td><td class="num">+4</td><td>116, 138, 154, 202</td><td class="num">506</td><td class="num">502</td><td class="num">0.994</td><td class="num">2.779</td><td class="num">3.474</td><td class="num">506</td></tr><tr><td>19</td><td class="num">+3</td><td>172, 147, 184</td><td class="num">509</td><td class="num">506</td><td class="num">0.996</td><td class="num">3.511</td><td class="num">4.389</td><td class="num">509</td></tr><tr><td>24</td><td class="num">+3</td><td>240, 160, 173</td><td class="num">512</td><td class="num">509</td><td class="num">0.996</td><td class="num">4.044</td><td class="num">5.055</td><td class="num">512</td></tr><tr><td>29</td><td class="num">+5</td><td>144, 209, 106, 119, 231</td><td class="num">517</td><td class="num">512</td><td class="num">0.993</td><td class="num">4.665</td><td class="num">5.832</td><td class="num">517</td></tr></tbody></table></div></div>
+<div class="card" data-stamp="HH · 03"><div class="sect">Time saved in each iteration</div><p class="small">Each cell = naive process wall minus that iteration's hh process wall, in seconds; positive is faster with hh, negative is slower. This includes the record pass at iteration 1. Each hh wall is used for six comparisons; do not treat them as 180 independent hh calls. A dash means at least one arm failed to produce all expected passing tests.</p><div class="table-wrap"><table><thead><tr><th>iteration</th><th class="num">added</th><th class="num">tests</th><th class="num">hh wall</th><th class="num">budget</th><th class="num">passed</th><th class="num">G=1s</th><th class="num">G=2s</th><th class="num">G=5s</th><th class="num">G=10s</th><th class="num">G=20s</th><th class="num">G=30s</th></tr></thead><tbody><tr><td>1</td><td class="num">—</td><td class="num">494</td><td class="num">2.496</td><td class="num">30.000</td><td class="num">494 ✓</td><td class="num"><span class="win">+0.364</span></td><td class="num"><span class="lose">-0.644</span></td><td class="num"><span class="lose">-0.734</span></td><td class="num"><span class="lose">-0.546</span></td><td class="num"><span class="lose">-0.645</span></td><td class="num"><span class="lose">-0.605</span></td></tr><tr><td>2</td><td class="num">—</td><td class="num">494</td><td class="num">2.451</td><td class="num">3.000</td><td class="num">494 ✓</td><td class="num"><span class="win">+0.209</span></td><td class="num"><span class="lose">-0.658</span></td><td class="num"><span class="lose">-0.640</span></td><td class="num"><span class="lose">-0.692</span></td><td class="num"><span class="lose">-0.756</span></td><td class="num"><span class="lose">-0.719</span></td></tr><tr><td>3</td><td class="num">—</td><td class="num">494</td><td class="num">2.003</td><td class="num">3.000</td><td class="num">494 ✓</td><td class="num"><span class="win">+0.610</span></td><td class="num"><span class="lose">-0.201</span></td><td class="num"><span class="lose">-0.334</span></td><td class="num"><span class="lose">-0.293</span></td><td class="num"><span class="lose">-0.246</span></td><td class="num"><span class="lose">-0.231</span></td></tr><tr><td>4</td><td class="num">+5</td><td class="num">499</td><td class="num">3.170</td><td class="num">3.000</td><td class="num">499 ✓</td><td class="num"><span class="win">+2.565</span></td><td class="num"><span class="win">+1.517</span></td><td class="num"><span class="lose">-0.565</span></td><td class="num"><span class="lose">-0.524</span></td><td class="num"><span class="lose">-0.524</span></td><td class="num"><span class="lose">-0.713</span></td></tr><tr><td>5</td><td class="num">—</td><td class="num">499</td><td class="num">2.731</td><td class="num">3.000</td><td class="num">499 ✓</td><td class="num"><span class="win">+2.768</span></td><td class="num"><span class="win">+1.774</span></td><td class="num"><span class="lose">-0.132</span></td><td class="num"><span class="lose">-0.234</span></td><td class="num"><span class="lose">-0.166</span></td><td class="num"><span class="win">+0.011</span></td></tr><tr><td>6</td><td class="num">—</td><td class="num">499</td><td class="num">2.917</td><td class="num">3.000</td><td class="num">499 ✓</td><td class="num"><span class="win">+2.576</span></td><td class="num"><span class="win">+1.634</span></td><td class="num"><span class="lose">-0.332</span></td><td class="num"><span class="lose">-0.175</span></td><td class="num"><span class="lose">-0.103</span></td><td class="num"><span class="lose">-0.403</span></td></tr><tr><td>7</td><td class="num">—</td><td class="num">499</td><td class="num">3.046</td><td class="num">3.000</td><td class="num">499 ✓</td><td class="num"><span class="win">+2.745</span></td><td class="num"><span class="win">+1.844</span></td><td class="num"><span class="lose">-0.334</span></td><td class="num"><span class="lose">-0.391</span></td><td class="num"><span class="lose">-0.326</span></td><td class="num"><span class="lose">-0.347</span></td></tr><tr><td>8</td><td class="num">—</td><td class="num">499</td><td class="num">2.833</td><td class="num">3.000</td><td class="num">499 ✓</td><td class="num"><span class="win">+2.984</span></td><td class="num"><span class="win">+2.179</span></td><td class="num"><span class="lose">-0.142</span></td><td class="num"><span class="lose">-0.280</span></td><td class="num"><span class="lose">-0.150</span></td><td class="num"><span class="lose">-0.191</span></td></tr><tr><td>9</td><td class="num">+3</td><td class="num">502</td><td class="num">3.831</td><td class="num">3.000</td><td class="num">502 ✓</td><td class="num"><span class="win">+2.394</span></td><td class="num"><span class="win">+1.326</span></td><td class="num"><span class="lose">-0.780</span></td><td class="num"><span class="lose">-0.552</span></td><td class="num"><span class="lose">-0.629</span></td><td class="num"><span class="lose">-0.441</span></td></tr><tr><td>10</td><td class="num">—</td><td class="num">502</td><td class="num">3.460</td><td class="num">3.408</td><td class="num">502 ✓</td><td class="num"><span class="win">+2.744</span></td><td class="num"><span class="win">+1.838</span></td><td class="num"><span class="lose">-0.219</span></td><td class="num"><span class="lose">-0.187</span></td><td class="num"><span class="lose">-0.121</span></td><td class="num"><span class="lose">-0.264</span></td></tr><tr><td>11</td><td class="num">—</td><td class="num">502</td><td class="num">3.404</td><td class="num">3.712</td><td class="num">502 ✓</td><td class="num"><span class="win">+2.708</span></td><td class="num"><span class="win">+1.836</span></td><td class="num"><span class="lose">-0.341</span></td><td class="num"><span class="lose">-0.364</span></td><td class="num"><span class="lose">-0.257</span></td><td class="num"><span class="lose">-0.105</span></td></tr><tr><td>12</td><td class="num">—</td><td class="num">502</td><td class="num">3.310</td><td class="num">3.440</td><td class="num">502 ✓</td><td class="num"><span class="win">+2.778</span></td><td class="num"><span class="win">+1.911</span></td><td class="num"><span class="lose">-0.255</span></td><td class="num"><span class="lose">-0.147</span></td><td class="num"><span class="lose">-0.134</span></td><td class="num"><span class="lose">-0.090</span></td></tr><tr><td>13</td><td class="num">—</td><td class="num">502</td><td class="num">3.346</td><td class="num">3.457</td><td class="num">502 ✓</td><td class="num"><span class="win">+2.718</span></td><td class="num"><span class="win">+1.775</span></td><td class="num"><span class="lose">-0.366</span></td><td class="num"><span class="lose">-0.173</span></td><td class="num"><span class="lose">-0.192</span></td><td class="num"><span class="lose">-0.245</span></td></tr><tr><td>14</td><td class="num">+4</td><td class="num">506</td><td class="num">4.579</td><td class="num">3.474</td><td class="num">506 ✓</td><td class="num"><span class="win">+2.177</span></td><td class="num"><span class="win">+1.301</span></td><td class="num"><span class="lose">-0.778</span></td><td class="num"><span class="lose">-0.743</span></td><td class="num"><span class="lose">-0.757</span></td><td class="num"><span class="lose">-0.697</span></td></tr><tr><td>15</td><td class="num">—</td><td class="num">506</td><td class="num">4.043</td><td class="num">4.572</td><td class="num">506 ✓</td><td class="num"><span class="win">+2.575</span></td><td class="num"><span class="win">+1.789</span></td><td class="num"><span class="lose">-0.292</span></td><td class="num"><span class="lose">-0.141</span></td><td class="num"><span class="lose">-0.175</span></td><td class="num"><span class="lose">-0.083</span></td></tr><tr><td>16</td><td class="num">—</td><td class="num">506</td><td class="num">4.416</td><td class="num">4.585</td><td class="num">506 ✓</td><td class="num"><span class="win">+2.487</span></td><td class="num"><span class="win">+1.340</span></td><td class="num"><span class="lose">-0.574</span></td><td class="num"><span class="lose">-0.572</span></td><td class="num"><span class="lose">-0.523</span></td><td class="num"><span class="lose">-0.673</span></td></tr><tr><td>17</td><td class="num">—</td><td class="num">506</td><td class="num">4.387</td><td class="num">4.342</td><td class="num">506 ✓</td><td class="num"><span class="win">+2.527</span></td><td class="num"><span class="win">+1.495</span></td><td class="num"><span class="lose">-0.621</span></td><td class="num"><span class="lose">-0.311</span></td><td class="num"><span class="lose">-0.593</span></td><td class="num"><span class="lose">-0.352</span></td></tr><tr><td>18</td><td class="num">—</td><td class="num">506</td><td class="num">4.076</td><td class="num">4.381</td><td class="num">506 ✓</td><td class="num"><span class="win">+2.655</span></td><td class="num"><span class="win">+1.798</span></td><td class="num"><span class="lose">-0.116</span></td><td class="num"><span class="lose">-0.270</span></td><td class="num"><span class="lose">-0.147</span></td><td class="num"><span class="lose">-0.175</span></td></tr><tr><td>19</td><td class="num">+3</td><td class="num">509</td><td class="num">5.116</td><td class="num">4.389</td><td class="num">509 ✓</td><td class="num"><span class="win">+6.072</span></td><td class="num"><span class="win">+5.188</span></td><td class="num"><span class="lose">-0.900</span></td><td class="num"><span class="lose">-0.741</span></td><td class="num"><span class="lose">-0.834</span></td><td class="num"><span class="lose">-0.665</span></td></tr><tr><td>20</td><td class="num">—</td><td class="num">509</td><td class="num">4.519</td><td class="num">5.039</td><td class="num">509 ✓</td><td class="num"><span class="win">+6.663</span></td><td class="num"><span class="win">+5.820</span></td><td class="num"><span class="lose">-0.232</span></td><td class="num"><span class="lose">-0.039</span></td><td class="num"><span class="lose">-0.133</span></td><td class="num"><span class="lose">-0.266</span></td></tr><tr><td>21</td><td class="num">—</td><td class="num">509</td><td class="num">4.351</td><td class="num">5.041</td><td class="num">509 ✓</td><td class="num"><span class="win">+6.981</span></td><td class="num"><span class="win">+6.034</span></td><td class="num"><span class="win">+0.007</span></td><td class="num"><span class="lose">-0.058</span></td><td class="num"><span class="lose">-0.031</span></td><td class="num"><span class="win">+0.081</span></td></tr><tr><td>22</td><td class="num">—</td><td class="num">509</td><td class="num">4.591</td><td class="num">5.037</td><td class="num">509 ✓</td><td class="num"><span class="win">+6.645</span></td><td class="num"><span class="win">+6.069</span></td><td class="num"><span class="lose">-0.207</span></td><td class="num"><span class="lose">-0.377</span></td><td class="num"><span class="lose">-0.337</span></td><td class="num"><span class="lose">-0.001</span></td></tr><tr><td>23</td><td class="num">—</td><td class="num">509</td><td class="num">4.571</td><td class="num">5.036</td><td class="num">509 ✓</td><td class="num"><span class="win">+6.651</span></td><td class="num"><span class="win">+5.590</span></td><td class="num"><span class="lose">-0.414</span></td><td class="num"><span class="lose">-0.317</span></td><td class="num"><span class="lose">-0.407</span></td><td class="num"><span class="lose">-0.321</span></td></tr><tr><td>24</td><td class="num">+3</td><td class="num">512</td><td class="num">5.497</td><td class="num">5.055</td><td class="num">512 ✓</td><td class="num"><span class="win">+6.287</span></td><td class="num"><span class="win">+5.266</span></td><td class="num"><span class="win">+4.284</span></td><td class="num"><span class="lose">-0.744</span></td><td class="num"><span class="lose">-0.750</span></td><td class="num"><span class="lose">-0.604</span></td></tr><tr><td>25</td><td class="num">—</td><td class="num">512</td><td class="num">5.249</td><td class="num">5.811</td><td class="num">512 ✓</td><td class="num"><span class="win">+6.574</span></td><td class="num"><span class="win">+5.462</span></td><td class="num"><span class="lose">-0.522</span></td><td class="num"><span class="lose">-0.506</span></td><td class="num"><span class="lose">-0.279</span></td><td class="num"><span class="lose">-0.536</span></td></tr><tr><td>26</td><td class="num">—</td><td class="num">512</td><td class="num">5.083</td><td class="num">5.826</td><td class="num">512 ✓</td><td class="num"><span class="win">+6.755</span></td><td class="num"><span class="win">+5.747</span></td><td class="num"><span class="lose">-0.114</span></td><td class="num"><span class="lose">-0.345</span></td><td class="num"><span class="lose">-0.259</span></td><td class="num"><span class="lose">-0.236</span></td></tr><tr><td>27</td><td class="num">—</td><td class="num">512</td><td class="num">5.066</td><td class="num">5.828</td><td class="num">512 ✓</td><td class="num"><span class="win">+6.770</span></td><td class="num"><span class="win">+5.832</span></td><td class="num"><span class="lose">-0.232</span></td><td class="num"><span class="lose">-0.339</span></td><td class="num"><span class="lose">-0.207</span></td><td class="num"><span class="lose">-0.234</span></td></tr><tr><td>28</td><td class="num">—</td><td class="num">512</td><td class="num">5.157</td><td class="num">5.824</td><td class="num">512 ✓</td><td class="num"><span class="win">+6.725</span></td><td class="num"><span class="win">+5.740</span></td><td class="num"><span class="lose">-0.348</span></td><td class="num"><span class="lose">-0.337</span></td><td class="num"><span class="lose">-0.284</span></td><td class="num"><span class="lose">-0.389</span></td></tr><tr><td>29</td><td class="num">+5</td><td class="num">517</td><td class="num">6.563</td><td class="num">5.832</td><td class="num">517 ✓</td><td class="num"><span class="win">+6.186</span></td><td class="num"><span class="win">+5.306</span></td><td class="num"><span class="win">+4.169</span></td><td class="num"><span class="lose">-0.937</span></td><td class="num"><span class="lose">-0.646</span></td><td class="num"><span class="lose">-0.914</span></td></tr><tr><td>30</td><td class="num">—</td><td class="num">517</td><td class="num">6.172</td><td class="num">6.847</td><td class="num">517 ✓</td><td class="num"><span class="win">+6.613</span></td><td class="num"><span class="win">+6.198</span></td><td class="num"><span class="win">+4.491</span></td><td class="num"><span class="lose">-0.489</span></td><td class="num"><span class="lose">-0.616</span></td><td class="num"><span class="lose">-0.418</span></td></tr></tbody></table></div><p class="small">Across 180 comparable configurations, 63 are positive; total signed difference +180.162 s, mean +1.001 s per comparison. These totals reuse hh walls; they are not the actual runtime of the 30 hh calls.</p></div>
+<div class="card" data-stamp="HH · 03"><div class="sect">The sweep — actual elapsed wall by iteration</div><p class="small">Seconds, including all naive killed attempts and retries. ✗ means at least one timeout; † means no verified result after up to four attempts. hh is external process elapsed time, including planning.</p><div class="table-wrap"><table><thead><tr><th>iteration</th><th class="num">tests</th><th class="num">hh</th><th class="num">G=1s</th><th class="num">G=2s</th><th class="num">G=5s</th><th class="num">G=10s</th><th class="num">G=20s</th><th class="num">G=30s</th></tr></thead><tbody><tr><td>1</td><td class="num">494</td><td class="num">2.496</td><td class="num">2.860 ✗</td><td class="num">1.852</td><td class="num">1.762</td><td class="num">1.950</td><td class="num">1.851</td><td class="num">1.891</td></tr><tr><td>2</td><td class="num">494</td><td class="num">2.451</td><td class="num">2.660 ✗</td><td class="num">1.793</td><td class="num">1.811</td><td class="num">1.759</td><td class="num">1.695</td><td class="num">1.732</td></tr><tr><td>3</td><td class="num">494</td><td class="num">2.003</td><td class="num">2.613 ✗</td><td class="num">1.802</td><td class="num">1.669</td><td class="num">1.710</td><td class="num">1.757</td><td class="num">1.772</td></tr><tr><td>4</td><td class="num">499</td><td class="num">3.170</td><td class="num">5.735 ✗</td><td class="num">4.687 ✗</td><td class="num">2.605</td><td class="num">2.646</td><td class="num">2.646</td><td class="num">2.457</td></tr><tr><td>5</td><td class="num">499</td><td class="num">2.731</td><td class="num">5.499 ✗</td><td class="num">4.505 ✗</td><td class="num">2.599</td><td class="num">2.497</td><td class="num">2.565</td><td class="num">2.742</td></tr><tr><td>6</td><td class="num">499</td><td class="num">2.917</td><td class="num">5.493 ✗</td><td class="num">4.551 ✗</td><td class="num">2.585</td><td class="num">2.742</td><td class="num">2.814</td><td class="num">2.514</td></tr><tr><td>7</td><td class="num">499</td><td class="num">3.046</td><td class="num">5.791 ✗</td><td class="num">4.890 ✗</td><td class="num">2.712</td><td class="num">2.655</td><td class="num">2.720</td><td class="num">2.699</td></tr><tr><td>8</td><td class="num">499</td><td class="num">2.833</td><td class="num">5.817 ✗</td><td class="num">5.012 ✗</td><td class="num">2.691</td><td class="num">2.553</td><td class="num">2.683</td><td class="num">2.642</td></tr><tr><td>9</td><td class="num">502</td><td class="num">3.831</td><td class="num">6.225 ✗</td><td class="num">5.157 ✗</td><td class="num">3.051</td><td class="num">3.279</td><td class="num">3.202</td><td class="num">3.390</td></tr><tr><td>10</td><td class="num">502</td><td class="num">3.460</td><td class="num">6.204 ✗</td><td class="num">5.298 ✗</td><td class="num">3.241</td><td class="num">3.273</td><td class="num">3.339</td><td class="num">3.196</td></tr><tr><td>11</td><td class="num">502</td><td class="num">3.404</td><td class="num">6.112 ✗</td><td class="num">5.240 ✗</td><td class="num">3.063</td><td class="num">3.040</td><td class="num">3.147</td><td class="num">3.299</td></tr><tr><td>12</td><td class="num">502</td><td class="num">3.310</td><td class="num">6.088 ✗</td><td class="num">5.221 ✗</td><td class="num">3.055</td><td class="num">3.163</td><td class="num">3.176</td><td class="num">3.220</td></tr><tr><td>13</td><td class="num">502</td><td class="num">3.346</td><td class="num">6.064 ✗</td><td class="num">5.121 ✗</td><td class="num">2.980</td><td class="num">3.173</td><td class="num">3.154</td><td class="num">3.101</td></tr><tr><td>14</td><td class="num">506</td><td class="num">4.579</td><td class="num">6.756 ✗</td><td class="num">5.880 ✗</td><td class="num">3.801</td><td class="num">3.836</td><td class="num">3.822</td><td class="num">3.882</td></tr><tr><td>15</td><td class="num">506</td><td class="num">4.043</td><td class="num">6.618 ✗</td><td class="num">5.832 ✗</td><td class="num">3.751</td><td class="num">3.902</td><td class="num">3.868</td><td class="num">3.960</td></tr><tr><td>16</td><td class="num">506</td><td class="num">4.416</td><td class="num">6.903 ✗</td><td class="num">5.756 ✗</td><td class="num">3.842</td><td class="num">3.844</td><td class="num">3.893</td><td class="num">3.743</td></tr><tr><td>17</td><td class="num">506</td><td class="num">4.387</td><td class="num">6.914 ✗</td><td class="num">5.882 ✗</td><td class="num">3.766</td><td class="num">4.076</td><td class="num">3.794</td><td class="num">4.035</td></tr><tr><td>18</td><td class="num">506</td><td class="num">4.076</td><td class="num">6.731 ✗</td><td class="num">5.874 ✗</td><td class="num">3.960</td><td class="num">3.806</td><td class="num">3.929</td><td class="num">3.901</td></tr><tr><td>19</td><td class="num">509</td><td class="num">5.116</td><td class="num">11.188 ✗</td><td class="num">10.304 ✗</td><td class="num">4.216</td><td class="num">4.375</td><td class="num">4.282</td><td class="num">4.451</td></tr><tr><td>20</td><td class="num">509</td><td class="num">4.519</td><td class="num">11.182 ✗</td><td class="num">10.339 ✗</td><td class="num">4.287</td><td class="num">4.480</td><td class="num">4.386</td><td class="num">4.253</td></tr><tr><td>21</td><td class="num">509</td><td class="num">4.351</td><td class="num">11.332 ✗</td><td class="num">10.385 ✗</td><td class="num">4.358</td><td class="num">4.293</td><td class="num">4.320</td><td class="num">4.432</td></tr><tr><td>22</td><td class="num">509</td><td class="num">4.591</td><td class="num">11.236 ✗</td><td class="num">10.660 ✗</td><td class="num">4.384</td><td class="num">4.214</td><td class="num">4.254</td><td class="num">4.590</td></tr><tr><td>23</td><td class="num">509</td><td class="num">4.571</td><td class="num">11.222 ✗</td><td class="num">10.161 ✗</td><td class="num">4.157</td><td class="num">4.254</td><td class="num">4.164</td><td class="num">4.250</td></tr><tr><td>24</td><td class="num">512</td><td class="num">5.497</td><td class="num">11.784 ✗</td><td class="num">10.763 ✗</td><td class="num">9.781 ✗</td><td class="num">4.753</td><td class="num">4.747</td><td class="num">4.893</td></tr><tr><td>25</td><td class="num">512</td><td class="num">5.249</td><td class="num">11.823 ✗</td><td class="num">10.711 ✗</td><td class="num">4.727</td><td class="num">4.743</td><td class="num">4.970</td><td class="num">4.713</td></tr><tr><td>26</td><td class="num">512</td><td class="num">5.083</td><td class="num">11.838 ✗</td><td class="num">10.830 ✗</td><td class="num">4.969</td><td class="num">4.738</td><td class="num">4.824</td><td class="num">4.847</td></tr><tr><td>27</td><td class="num">512</td><td class="num">5.066</td><td class="num">11.836 ✗</td><td class="num">10.898 ✗</td><td class="num">4.834</td><td class="num">4.727</td><td class="num">4.859</td><td class="num">4.832</td></tr><tr><td>28</td><td class="num">512</td><td class="num">5.157</td><td class="num">11.882 ✗</td><td class="num">10.897 ✗</td><td class="num">4.809</td><td class="num">4.820</td><td class="num">4.873</td><td class="num">4.768</td></tr><tr><td>29</td><td class="num">517</td><td class="num">6.563</td><td class="num">12.749 ✗</td><td class="num">11.869 ✗</td><td class="num">10.732 ✗</td><td class="num">5.626</td><td class="num">5.917</td><td class="num">5.649</td></tr><tr><td>30</td><td class="num">517</td><td class="num">6.172</td><td class="num">12.785 ✗</td><td class="num">12.370 ✗</td><td class="num">10.663 ✗</td><td class="num">5.683</td><td class="num">5.556</td><td class="num">5.754</td></tr></tbody></table></div></div>
+<div class="card" data-stamp="HH · 03"><div class="sect">Killed configurations, side by side</div><p class="small">Savings only when both arms finished with every expected test passing. Negative savings are shown, not hidden.</p><div class="table-wrap"><table><thead><tr><th>iteration</th><th>G</th><th class="num">naive attempts</th><th class="num">naive kills</th><th class="num">naive wall</th><th class="num">hh wall</th><th class="num">saved</th></tr></thead><tbody><tr><td>1</td><td>1 s</td><td class="num">2</td><td class="num">1</td><td class="num">2.860</td><td class="num">2.496</td><td class="num"><span class="win">+0.364</span></td></tr><tr><td>2</td><td>1 s</td><td class="num">2</td><td class="num">1</td><td class="num">2.660</td><td class="num">2.451</td><td class="num"><span class="win">+0.209</span></td></tr><tr><td>3</td><td>1 s</td><td class="num">2</td><td class="num">1</td><td class="num">2.613</td><td class="num">2.003</td><td class="num"><span class="win">+0.610</span></td></tr><tr><td>4</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">5.735</td><td class="num">3.170</td><td class="num"><span class="win">+2.565</span></td></tr><tr><td>4</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">4.687</td><td class="num">3.170</td><td class="num"><span class="win">+1.517</span></td></tr><tr><td>5</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">5.499</td><td class="num">2.731</td><td class="num"><span class="win">+2.768</span></td></tr><tr><td>5</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">4.505</td><td class="num">2.731</td><td class="num"><span class="win">+1.774</span></td></tr><tr><td>6</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">5.493</td><td class="num">2.917</td><td class="num"><span class="win">+2.576</span></td></tr><tr><td>6</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">4.551</td><td class="num">2.917</td><td class="num"><span class="win">+1.634</span></td></tr><tr><td>7</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">5.791</td><td class="num">3.046</td><td class="num"><span class="win">+2.745</span></td></tr><tr><td>7</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">4.890</td><td class="num">3.046</td><td class="num"><span class="win">+1.844</span></td></tr><tr><td>8</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">5.817</td><td class="num">2.833</td><td class="num"><span class="win">+2.984</span></td></tr><tr><td>8</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">5.012</td><td class="num">2.833</td><td class="num"><span class="win">+2.179</span></td></tr><tr><td>9</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">6.225</td><td class="num">3.831</td><td class="num"><span class="win">+2.394</span></td></tr><tr><td>9</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">5.157</td><td class="num">3.831</td><td class="num"><span class="win">+1.326</span></td></tr><tr><td>10</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">6.204</td><td class="num">3.460</td><td class="num"><span class="win">+2.744</span></td></tr><tr><td>10</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">5.298</td><td class="num">3.460</td><td class="num"><span class="win">+1.838</span></td></tr><tr><td>11</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">6.112</td><td class="num">3.404</td><td class="num"><span class="win">+2.708</span></td></tr><tr><td>11</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">5.240</td><td class="num">3.404</td><td class="num"><span class="win">+1.836</span></td></tr><tr><td>12</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">6.088</td><td class="num">3.310</td><td class="num"><span class="win">+2.778</span></td></tr><tr><td>12</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">5.221</td><td class="num">3.310</td><td class="num"><span class="win">+1.911</span></td></tr><tr><td>13</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">6.064</td><td class="num">3.346</td><td class="num"><span class="win">+2.718</span></td></tr><tr><td>13</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">5.121</td><td class="num">3.346</td><td class="num"><span class="win">+1.775</span></td></tr><tr><td>14</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">6.756</td><td class="num">4.579</td><td class="num"><span class="win">+2.177</span></td></tr><tr><td>14</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">5.880</td><td class="num">4.579</td><td class="num"><span class="win">+1.301</span></td></tr><tr><td>15</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">6.618</td><td class="num">4.043</td><td class="num"><span class="win">+2.575</span></td></tr><tr><td>15</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">5.832</td><td class="num">4.043</td><td class="num"><span class="win">+1.789</span></td></tr><tr><td>16</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">6.903</td><td class="num">4.416</td><td class="num"><span class="win">+2.487</span></td></tr><tr><td>16</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">5.756</td><td class="num">4.416</td><td class="num"><span class="win">+1.340</span></td></tr><tr><td>17</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">6.914</td><td class="num">4.387</td><td class="num"><span class="win">+2.527</span></td></tr><tr><td>17</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">5.882</td><td class="num">4.387</td><td class="num"><span class="win">+1.495</span></td></tr><tr><td>18</td><td>1 s</td><td class="num">3</td><td class="num">2</td><td class="num">6.731</td><td class="num">4.076</td><td class="num"><span class="win">+2.655</span></td></tr><tr><td>18</td><td>2 s</td><td class="num">2</td><td class="num">1</td><td class="num">5.874</td><td class="num">4.076</td><td class="num"><span class="win">+1.798</span></td></tr><tr><td>19</td><td>1 s</td><td class="num">4</td><td class="num">3</td><td class="num">11.188</td><td class="num">5.116</td><td class="num"><span class="win">+6.072</span></td></tr><tr><td>19</td><td>2 s</td><td class="num">3</td><td class="num">2</td><td class="num">10.304</td><td class="num">5.116</td><td class="num"><span class="win">+5.188</span></td></tr><tr><td>20</td><td>1 s</td><td class="num">4</td><td class="num">3</td><td class="num">11.182</td><td class="num">4.519</td><td class="num"><span class="win">+6.663</span></td></tr><tr><td>20</td><td>2 s</td><td class="num">3</td><td class="num">2</td><td class="num">10.339</td><td class="num">4.519</td><td class="num"><span class="win">+5.820</span></td></tr><tr><td>21</td><td>1 s</td><td class="num">4</td><td class="num">3</td><td class="num">11.332</td><td class="num">4.351</td><td class="num"><span class="win">+6.981</span></td></tr><tr><td>21</td><td>2 s</td><td class="num">3</td><td class="num">2</td><td class="num">10.385</td><td class="num">4.351</td><td class="num"><span class="win">+6.034</span></td></tr><tr><td>22</td><td>1 s</td><td class="num">4</td><td class="num">3</td><td class="num">11.236</td><td class="num">4.591</td><td class="num"><span class="win">+6.645</span></td></tr><tr><td>22</td><td>2 s</td><td class="num">3</td><td class="num">2</td><td class="num">10.660</td><td class="num">4.591</td><td class="num"><span class="win">+6.069</span></td></tr><tr><td>23</td><td>1 s</td><td class="num">4</td><td class="num">3</td><td class="num">11.222</td><td class="num">4.571</td><td class="num"><span class="win">+6.651</span></td></tr><tr><td>23</td><td>2 s</td><td class="num">3</td><td class="num">2</td><td class="num">10.161</td><td class="num">4.571</td><td class="num"><span class="win">+5.590</span></td></tr><tr><td>24</td><td>1 s</td><td class="num">4</td><td class="num">3</td><td class="num">11.784</td><td class="num">5.497</td><td class="num"><span class="win">+6.287</span></td></tr><tr><td>24</td><td>2 s</td><td class="num">3</td><td class="num">2</td><td class="num">10.763</td><td class="num">5.497</td><td class="num"><span class="win">+5.266</span></td></tr><tr><td>24</td><td>5 s</td><td class="num">2</td><td class="num">1</td><td class="num">9.781</td><td class="num">5.497</td><td class="num"><span class="win">+4.284</span></td></tr><tr><td>25</td><td>1 s</td><td class="num">4</td><td class="num">3</td><td class="num">11.823</td><td class="num">5.249</td><td class="num"><span class="win">+6.574</span></td></tr><tr><td>25</td><td>2 s</td><td class="num">3</td><td class="num">2</td><td class="num">10.711</td><td class="num">5.249</td><td class="num"><span class="win">+5.462</span></td></tr><tr><td>26</td><td>1 s</td><td class="num">4</td><td class="num">3</td><td class="num">11.838</td><td class="num">5.083</td><td class="num"><span class="win">+6.755</span></td></tr><tr><td>26</td><td>2 s</td><td class="num">3</td><td class="num">2</td><td class="num">10.830</td><td class="num">5.083</td><td class="num"><span class="win">+5.747</span></td></tr><tr><td>27</td><td>1 s</td><td class="num">4</td><td class="num">3</td><td class="num">11.836</td><td class="num">5.066</td><td class="num"><span class="win">+6.770</span></td></tr><tr><td>27</td><td>2 s</td><td class="num">3</td><td class="num">2</td><td class="num">10.898</td><td class="num">5.066</td><td class="num"><span class="win">+5.832</span></td></tr><tr><td>28</td><td>1 s</td><td class="num">4</td><td class="num">3</td><td class="num">11.882</td><td class="num">5.157</td><td class="num"><span class="win">+6.725</span></td></tr><tr><td>28</td><td>2 s</td><td class="num">3</td><td class="num">2</td><td class="num">10.897</td><td class="num">5.157</td><td class="num"><span class="win">+5.740</span></td></tr><tr><td>29</td><td>1 s</td><td class="num">4</td><td class="num">3</td><td class="num">12.749</td><td class="num">6.563</td><td class="num"><span class="win">+6.186</span></td></tr><tr><td>29</td><td>2 s</td><td class="num">3</td><td class="num">2</td><td class="num">11.869</td><td class="num">6.563</td><td class="num"><span class="win">+5.306</span></td></tr><tr><td>29</td><td>5 s</td><td class="num">2</td><td class="num">1</td><td class="num">10.732</td><td class="num">6.563</td><td class="num"><span class="win">+4.169</span></td></tr><tr><td>30</td><td>1 s</td><td class="num">4</td><td class="num">3</td><td class="num">12.785</td><td class="num">6.172</td><td class="num"><span class="win">+6.613</span></td></tr><tr><td>30</td><td>2 s</td><td class="num">3</td><td class="num">2</td><td class="num">12.370</td><td class="num">6.172</td><td class="num"><span class="win">+6.198</span></td></tr><tr><td>30</td><td>5 s</td><td class="num">2</td><td class="num">1</td><td class="num">10.663</td><td class="num">6.172</td><td class="num"><span class="win">+4.491</span></td></tr></tbody></table></div></div>
+<div class="card" data-stamp="HH · 03"><div class="sect">How to read this honestly</div><ul class="note-list"><li><b>Not production changes.</b> Added tests only sleep; runtime increase is intentionally controlled and is not evidence about real new Flask features or representative test durations.</li><li><b>One machine and one suite.</b> Runs are sequential, order varies but is not fully randomized; 30 calls share hh's progressively updated history and OS caches. Data are not independent cold trials. A brief separate cache-edge investigation ran concurrently near the beginning and may affect early timings.</li><li><b>Fair clock, different invocation.</b> Both arms run the same intended tests and disable pytest's cache provider. Naive uses <code>pytest tests</code>; hh drives node IDs and writes a ledger. The comparison uses total hh process wall, not just the smaller runner-only <code>wall_s</code>.</li><li><b>Cold start included.</b> Iteration 1 is a record pass, with no measured prediction. The hh call at each iteration is compared against six separately executed naive guesses; summing differences repeats that cost six times.</li><li><b>Verified results.</b> The script checks naive pytest's passed count and hh's distinct ledger outcomes, not merely hh's status. No result means no saving is claimed. Whether a timeout exercises resume can be seen in the raw results.</li></ul></div>
+<div class="card" data-stamp="HH · 03"><div class="sect">Reproducing &amp; provenance</div><p>hh <code>64daa4986b6b2139b7e171d09a3ae742b650af3a</code> (2.4.0); Flask <code>49943b5a94413a530761350f04e896f76e8d620e</code>. Python 3.11.2, Linux, 2 virtual CPUs, 3.8 GiB reported memory. Seed <code>20261107</code>. The complete schedule, added source, arm ordering, outcomes, attempt timings and package versions are in <a href="flask-changing-results.json">flask-changing-results.json</a>; <a href="flask-changing-ledger-check.json">ledger verification</a> checks the generated IDs. The separate <a href="flask-cache-change-check.json">cache edge-case check</a> is reproducible with <code>benchmark.check_pytest_change_cache</code>.</p><pre>git clone https://github.com/pallets/flask.git benchmark/_work/repos/flask-changing
+git -C benchmark/_work/repos/flask-changing checkout 49943b5a94413a530761350f04e896f76e8d620e
+python3 -m venv benchmark/_work/venv
+benchmark/_work/venv/bin/pip install -r benchmark/flask-repeat-requirements.txt
+benchmark/_work/venv/bin/pip install --no-deps --no-build-isolation -e benchmark/_work/repos/flask-changing
+PYTHONPATH=. benchmark/_work/venv/bin/python -m benchmark.changing_flask
+python3 -m benchmark.verify_changing_ledgers
+python3 -m benchmark.report_changing_flask</pre><p class="small">The script requires a clean dedicated checkout and adds generated test files there. It deletes only <code>benchmark/_work/stores/flask-changing</code> and overwrites the raw results. The report generator reads the earlier HTML for its original reference CSS and logo. Versions are pinned; timings vary by environment.</p></div>
+<div class="foot">hh · growing-suite timeout-metric benchmark · 2026-11-07</div></div>
+<div class="share-strip">
+  <span class="ss-mark">hh</span>
+  <div class="ss-id"><b>HH / 03 · hh benchmark series</b>
+    <span>REPORT 03 / 03 · 2026-11-07 · self-contained html · evenzero.in</span></div>
+  <div class="ss-right">static report · no external assets · <a href="#top">back to top ↑</a></div>
+</div>
+</div><!-- /.sheet -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(function () {
+  var toast = document.getElementById('toast'), timer;
+  function notify(msg) {
+    if (!toast) return;
+    toast.textContent = msg; toast.classList.add('show');
+    clearTimeout(timer); timer = setTimeout(function () { toast.classList.remove('show'); }, 1900);
+  }
+  function fallback(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); notify('copied to clipboard'); }
+    catch (e) { notify('copy unavailable — select the text manually'); }
+    document.body.removeChild(ta);
+  }
+  function copy(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function () { notify('copied to clipboard'); },
+        function () { fallback(text); });
+    } else { fallback(text); }
+  }
+  var summary = document.body.getAttribute('data-summary') || document.title;
+  var url = /^https?:/.test(location.protocol) ? '\n' + location.href : '';
+  Array.prototype.forEach.call(document.querySelectorAll('[data-copy]'), function (btn) {
+    btn.addEventListener('click', function () {
+      copy(btn.getAttribute('data-copy') === 'link' ? location.href : summary + url);
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-print]'), function (btn) {
+    btn.addEventListener('click', function () { window.print(); });
+  });
+})();
+</script>
+</body></html>
